@@ -1,0 +1,68 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/docker-build-push.yml'
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PROXY: ${{ github.repository }}/proxy
+  IMAGE_EVENTS: ${{ github.repository }}/events
+  TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- Сборка и пуш proxy ---
+      - name: Build and push proxy image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/proxy
+          file: ./src/proxy/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PROXY }}:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PROXY }}:latest
+
+      # --- Сборка и пуш events ---
+      - name: Build and push events image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/events
+          file: ./src/events/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_EVENTS }}:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_EVENTS }}:latest
+
+      # --- Запуск тестов ---
+      - name: Run API tests
+        run: |
+          echo "Running API tests..."
+          docker run --rm \
+            -e API_URL=http://localhost:8080 \
+            -v ${{ github.workspace }}/tests:/tests \
+            node:18 bash -c "cd /tests && npm ci && npm test"

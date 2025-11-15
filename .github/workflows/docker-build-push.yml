@@ -20,10 +20,6 @@ env:
   IMAGE_MONOLITH: ${{ github.repository }}/monolith
   TAG: ${{ github.sha }}
 
-tags: |
-  ${{ env.REGISTRY }}/${{ env.REPO_LC }}/proxy:${{ env.TAG }}
-  ${{ env.REGISTRY }}/${{ env.REPO_LC }}/proxy:latest
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

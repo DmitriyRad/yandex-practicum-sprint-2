@@ -94,8 +94,5 @@ jobs:
       # --- Запуск тестов ---
       - name: Run API tests
         run: |
-          echo "Running API tests..."
-          docker run --rm \
-            -e API_URL=http://localhost:8080 \
-            -v ${{ github.workspace }}/tests:/tests \
-            node:18 bash -c "cd /tests && npm ci && npm test"
+          chmod +x ./tests/postman/run-tests.sh
+          ./tests/postman/run-tests.sh

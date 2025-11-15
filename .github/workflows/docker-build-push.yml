@@ -48,9 +48,10 @@ jobs:
           context: ./src/microservices/proxy
           file: ./src/microservices/proxy/Dockerfile
           push: true
+
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PROXY }}:${{ env.TAG }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PROXY }}:latest
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/proxy:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/proxy:latest
 
       # --- Сборка и пуш events ---
       - name: Build and push events image
@@ -60,8 +61,8 @@ jobs:
           file: ./src/microservices/events/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_EVENTS }}:${{ env.TAG }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_EVENTS }}:latest
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/events:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/events:latest
 
       # --- Сборка и пуш movies ---
       - name: Build and push movies image
@@ -71,8 +72,8 @@ jobs:
           file: ./src/microservices/movies/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_MOVIES }}:${{ env.TAG }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_MOVIES }}:latest
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/movies:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/movies:latest
 
       # --- Сборка и пуш movies ---
       - name: Build and push monolith image
@@ -82,8 +83,8 @@ jobs:
           file: ./src/monolith/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_MONOLITH }}:${{ env.TAG }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_MONOLITH }}:latest
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/monolith:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}/monolith:latest
 
       # --- Запуск тестов ---
       - name: Run API tests

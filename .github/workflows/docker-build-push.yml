@@ -2,7 +2,7 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main ]
+    branches: [ cinema ]
     paths:
       - 'src/**'
       - '.github/workflows/docker-build-push.yml'
@@ -13,6 +13,8 @@ env:
   REGISTRY: ghcr.io
   IMAGE_PROXY: ${{ github.repository }}/proxy
   IMAGE_EVENTS: ${{ github.repository }}/events
+  IMAGE_MOVIES: ${{ github.repository }}/movies
+  IMAGE_MONOLITH: ${{ github.repository }}/monolith
   TAG: ${{ github.sha }}
 
 jobs:
@@ -40,8 +42,8 @@ jobs:
       - name: Build and push proxy image
         uses: docker/build-push-action@v4
         with:
-          context: ./src/proxy
-          file: ./src/proxy/Dockerfile
+          context: ./src/microservices/proxy
+          file: ./src/microservices/proxy/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PROXY }}:${{ env.TAG }}
@@ -51,12 +53,34 @@ jobs:
       - name: Build and push events image
         uses: docker/build-push-action@v4
         with:
-          context: ./src/events
-          file: ./src/events/Dockerfile
+          context: ./src/microservices/events
+          file: ./src/microservices/events/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_EVENTS }}:${{ env.TAG }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_EVENTS }}:latest
+
+      # --- Сборка и пуш movies ---
+      - name: Build and push movies image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/microservices/movies
+          file: ./src/microservices/movies/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_MOVIES }}:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_MOVIES }}:latest
+
+      # --- Сборка и пуш movies ---
+      - name: Build and push monolith image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/monolith
+          file: ./src/monolith/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_MONOLITH }}:${{ env.TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_MONOLITH }}:latest
 
       # --- Запуск тестов ---
       - name: Run API tests

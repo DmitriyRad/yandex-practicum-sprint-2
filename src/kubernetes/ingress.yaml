@@ -11,8 +11,16 @@ spec:
     - host: cinemaabyss.example.com
       http:
         paths:
-          #дополните конфигурацию для /
-          ...
+          # маршрут для основного frontend / proxy
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: proxy-service
+                port:
+                  number: 8000
+
+          # маршрут для API событий
           - path: /api/events
             pathType: Prefix
             backend:

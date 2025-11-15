@@ -5,7 +5,14 @@ global:
 
 # Image pull secrets
 imagePullSecrets:
-  dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6
+  dockerconfigjson: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "auth": "" 
+        }
+      }
+    }
 # Database configuration
 database:
   host: postgres
@@ -33,7 +40,7 @@ database:
 monolith:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/monolith
+    repository: ghcr.io/dmitriyrad/monolith
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -53,7 +60,7 @@ monolith:
 proxyService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/proxy-service
+    repository: ghcr.io/dmitriyrad/proxy-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -73,7 +80,7 @@ proxyService:
 moviesService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/movies-service
+    repository: ghcr.io/dmitriyrad/movies-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -93,7 +100,7 @@ moviesService:
 eventsService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/events-service
+    repository: ghcr.io/dmitriyrad/events-service
     tag: latest
     pullPolicy: Always
   replicas: 1

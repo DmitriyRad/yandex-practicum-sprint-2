@@ -11,11 +11,18 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+  REPO: ${{ github.event.repository.name }}
+  REPO_LC: ${{ github.repository_owner }}/$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
   IMAGE_PROXY: ${{ github.repository }}/proxy
   IMAGE_EVENTS: ${{ github.repository }}/events
   IMAGE_MOVIES: ${{ github.repository }}/movies
   IMAGE_MONOLITH: ${{ github.repository }}/monolith
   TAG: ${{ github.sha }}
+
+tags: |
+  ${{ env.REGISTRY }}/${{ env.REPO_LC }}/proxy:${{ env.TAG }}
+  ${{ env.REGISTRY }}/${{ env.REPO_LC }}/proxy:latest
 
 jobs:
   build-and-push:

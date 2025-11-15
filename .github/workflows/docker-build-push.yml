@@ -55,8 +55,8 @@ jobs:
           push: true
 
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy:${{ env.TAG }}
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:latest
 
       # --- Сборка и пуш events ---
       - name: Build and push events image
@@ -66,8 +66,8 @@ jobs:
           file: ./src/microservices/events/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events:${{ env.TAG }}
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:latest
 
       # --- Сборка и пуш movies ---
       - name: Build and push movies image
@@ -77,8 +77,8 @@ jobs:
           file: ./src/microservices/movies/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies:${{ env.TAG }}
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:latest
 
       # --- Сборка и пуш movies ---
       - name: Build and push monolith image
@@ -88,8 +88,8 @@ jobs:
           file: ./src/monolith/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith:${{ env.TAG }}
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:latest
 
       # --- Запуск тестов ---
       - name: Run API tests

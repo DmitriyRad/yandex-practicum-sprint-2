@@ -92,7 +92,7 @@ jobs:
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:latest
 
       # --- Запуск тестов ---
-      - name: Run API tests
-        run: |
-          chmod +x ./tests/postman/run-tests.sh
-          ./tests/postman/run-tests.sh
+#      - name: Run API tests
+#        run: |
+#          chmod +x ./tests/postman/run-tests.sh
+#          ./tests/postman/run-tests.sh

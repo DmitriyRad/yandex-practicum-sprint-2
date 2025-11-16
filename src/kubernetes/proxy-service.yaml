@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: proxy-service
-          image: ghcr.io/dmitriyrad/proxy-service:latest
+          image: ghcr.io/dmitriyrad/yandex-practicum-sprint-2/proxy-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

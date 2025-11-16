@@ -21,7 +21,7 @@ var (
 
 func main() {
 	port := getEnv("PORT", "8000")
-	monolithURL = getEnv("MONOLITH_URL", "http://monolith:8080")
+	monolithURL = getEnv("MONOLITH_URL", "http://monolith:9080")
 	moviesServiceURL = getEnv("MOVIES_SERVICE_URL", "http://movies-service:8081")
 	eventsServiceURL = getEnv("EVENTS_SERVICE_URL", "http://events-service:8082")
 

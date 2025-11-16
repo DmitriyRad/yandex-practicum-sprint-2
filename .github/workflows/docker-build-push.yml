@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  OWNER: ${{ github.repository_owner }}
+  OWNER: dmitriyrad
 
   IMAGE_PROXY: ghcr.io/${{ github.repository_owner }}/proxy-service
   IMAGE_EVENTS: ghcr.io/${{ github.repository_owner }}/events-service

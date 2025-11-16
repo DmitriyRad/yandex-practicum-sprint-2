@@ -11,7 +11,7 @@ data:
   DB_USER: "postgres"
 
   # Service URLs
-  MONOLITH_URL: "http://monolith:8080"
+  MONOLITH_URL: "http://monolith:9080"
   MOVIES_SERVICE_URL: "http://movies-service:8081"
   
   # Strangler Fig configuration

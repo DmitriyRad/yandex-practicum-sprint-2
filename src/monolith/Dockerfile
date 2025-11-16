@@ -25,7 +25,7 @@ WORKDIR /root/
 COPY --from=builder /app/monolith .
 
 # Expose the application port
-EXPOSE 9080
+EXPOSE 8080
 
 # Command to run the executable
 CMD ["./monolith"]

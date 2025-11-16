@@ -36,6 +36,11 @@ func main() {
 	log.Printf("[proxy] Events URL: %s", eventsServiceURL)
 	log.Printf("[proxy] Gradual migration: %v (%d%%)", gradualMigration, moviesMigrationPercent)
 
+	http.HandleFunc("/api/proxy/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("[proxy] failed to start: %v", err)
 	}

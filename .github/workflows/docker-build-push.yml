@@ -11,13 +11,13 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  OWNER: dmitriyrad
-
-  IMAGE_PROXY: ghcr.io/${{ github.repository_owner }}/proxy-service
-  IMAGE_EVENTS: ghcr.io/${{ github.repository_owner }}/events-service
-  IMAGE_MOVIES: ghcr.io/${{ github.repository_owner }}/movies-service
-  IMAGE_MONOLITH: ghcr.io/${{ github.repository_owner }}/monolith-service
-
+  OWNER: ${{ github.repository_owner }}
+  REPO: ${{ github.event.repository.name }}
+  REPO_LC: ${{ github.repository_owner }}/$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+  IMAGE_PROXY: ${{ github.repository }}/proxy
+  IMAGE_EVENTS: ${{ github.repository }}/events
+  IMAGE_MOVIES: ${{ github.repository }}/movies
+  IMAGE_MONOLITH: ${{ github.repository }}/monolith
   TAG: ${{ github.sha }}
 
 jobs:
@@ -30,6 +30,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Convert owner and repo to lowercase
+        run: |
+          echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "REPO_LC=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -48,9 +53,10 @@ jobs:
           context: ./src/microservices/proxy
           file: ./src/microservices/proxy/Dockerfile
           push: true
+
           tags: |
-            ${{ env.IMAGE_PROXY }}:${{ env.TAG }}
-            ${{ env.IMAGE_PROXY }}:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:latest
 
       # --- Сборка и пуш events ---
       - name: Build and push events image
@@ -60,8 +66,8 @@ jobs:
           file: ./src/microservices/events/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_EVENTS }}:${{ env.TAG }}
-            ${{ env.IMAGE_EVENTS }}:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:latest
 
       # --- Сборка и пуш movies ---
       - name: Build and push movies image
@@ -71,10 +77,10 @@ jobs:
           file: ./src/microservices/movies/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_MOVIES }}:${{ env.TAG }}
-            ${{ env.IMAGE_MOVIES }}:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:latest
 
-      # --- Сборка и пуш monolith ---
+      # --- Сборка и пуш movies ---
       - name: Build and push monolith image
         uses: docker/build-push-action@v4
         with:
@@ -82,8 +88,8 @@ jobs:
           file: ./src/monolith/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_MONOLITH }}:${{ env.TAG }}
-            ${{ env.IMAGE_MONOLITH }}:latest
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:latest
 
       # --- Запуск тестов ---
       - name: Run API tests

@@ -12,12 +12,6 @@ on:
 env:
   REGISTRY: ghcr.io
   OWNER: ${{ github.repository_owner }}
-  REPO: ${{ github.event.repository.name }}
-  REPO_LC: ${{ github.repository_owner }}/$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
-  IMAGE_PROXY: ${{ github.repository }}/proxy
-  IMAGE_EVENTS: ${{ github.repository }}/events
-  IMAGE_MOVIES: ${{ github.repository }}/movies
-  IMAGE_MONOLITH: ${{ github.repository }}/monolith
   TAG: ${{ github.sha }}
 
 jobs:
@@ -36,63 +30,64 @@ jobs:
           echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
           echo "REPO_LC=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+      # --- Включаем поддержку ARM/AMD64 ---
+      - name: Set up QEMU for multi-arch
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # --- Сборка и пуш proxy ---
+      # --- proxy-service ---
       - name: Build and push proxy image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./src/microservices/proxy
           file: ./src/microservices/proxy/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
-
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:${{ env.TAG }}
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:latest
 
-      # --- Сборка и пуш events ---
+      # --- events-service ---
       - name: Build and push events image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./src/microservices/events
           file: ./src/microservices/events/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:${{ env.TAG }}
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:latest
 
-      # --- Сборка и пуш movies ---
+      # --- movies-service ---
       - name: Build and push movies image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./src/microservices/movies
           file: ./src/microservices/movies/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:${{ env.TAG }}
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:latest
 
-      # --- Сборка и пуш movies ---
+      # --- monolith-service ---
       - name: Build and push monolith image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./src/monolith
           file: ./src/monolith/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:${{ env.TAG }}
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:latest
-
-      # --- Запуск тестов ---
-#      - name: Run API tests
-#        run: |
-#          chmod +x ./tests/postman/run-tests.sh
-#          ./tests/postman/run-tests.sh

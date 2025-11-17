@@ -28,9 +28,9 @@ func main() {
 	broker := getEnv("KAFKA_BROKER", "kafka:9092")
 
 	topics := map[string]string{
-		"user":    "events.user",
-		"payment": "events.payment",
-		"movie":   "events.movie",
+		"user":    "user-events",
+		"payment": "payment-events",
+		"movie":   "movie-events",
 	}
 
 	mux := http.NewServeMux()

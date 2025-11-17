@@ -5,7 +5,7 @@ global:
 
 # Image pull secrets
 imagePullSecrets:
-  dockerconfigjson: ''
+  dockerconfigjson: ewogICJhdXRocyI6IHsKICAgICJnaGNyLmlvIjogewogICAgICAiYXV0aCI6ICJSRzFwZEhKcGVWSmhaRHBuYUhCZk1qRm5abGR4V25KUmFGWnlja3BMU0VoUE1tMW1hRTA1Y1RFMFRqWXlNVVprYnpGVyIKICAgIH0KICB9Cn0=
 # Database configuration
 database:
   host: postgres

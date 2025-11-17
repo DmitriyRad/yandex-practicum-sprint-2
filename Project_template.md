@@ -129,4 +129,5 @@
 
 ![Cкриншот развертывания helm](img_9.png)
 ![Вывод cinemaabyss.example.com/api/movies](img_8.png)
+![img_10.png](img_10.png)
 

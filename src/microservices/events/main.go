@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/segmentio/kafka-go"
 	"log"
+	"net"
 	"net/http"
 	"os"
-	"os/signal"
 	"time"
 )
 
@@ -19,40 +19,41 @@ type Event struct {
 }
 
 type HealthResponse struct {
-	Status bool `json:"status"`
-}
-
-type SuccessResponse struct {
-	Status string `json:"status"`
+	Status  string `json:"status"`
+	KafkaOK bool   `json:"kafka_ok"`
 }
 
 func main() {
 	port := getEnv("PORT", "8082")
-	broker := getEnv("KAFKA_BROKERS", "kafka:9092")
-	topic := "cinema.events"
+	broker := getEnv("KAFKA_BROKER", "kafka:9092")
 
-	writer := &kafka.Writer{
-		Addr:     kafka.TCP(broker),
-		Topic:    topic,
-		Balancer: &kafka.LeastBytes{},
+	topics := map[string]string{
+		"user":    "events.user",
+		"payment": "events.payment",
+		"movie":   "events.movie",
 	}
-	defer writer.Close()
-
-	// Запуск consumer в фоне
-	go consumeLoop(broker, topic)
 
 	mux := http.NewServeMux()
 
-	// Health check
 	mux.HandleFunc("/api/events/health", func(w http.ResponseWriter, r *http.Request) {
-		resp := HealthResponse{Status: true}
+		kafkaOK := checkKafka(broker)
+
+		resp := HealthResponse{
+			Status:  "ok",
+			KafkaOK: kafkaOK,
+		}
+
+		status := http.StatusOK
+		if !kafkaOK {
+			status = http.StatusServiceUnavailable
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(status)
 		_ = json.NewEncoder(w).Encode(resp)
 	})
 
-	// Универсальный обработчик для событий
-	handleEvent := func(eventType string) http.HandlerFunc {
+	makeHandler := func(eventType string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != http.MethodPost {
 				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -61,80 +62,52 @@ func main() {
 
 			event := Event{
 				Type: eventType,
-				Data: fmt.Sprintf("Event from %s endpoint", eventType),
+				Data: fmt.Sprintf("%s event happened", eventType),
 				Time: time.Now().Format(time.RFC3339),
 			}
 
-			eventJSON, _ := json.Marshal(event)
-			err := writer.WriteMessages(context.Background(), kafka.Message{
-				Value: eventJSON,
-			})
-			if err != nil {
-				http.Error(w, "failed to produce message: "+err.Error(), 500)
+			body, _ := json.Marshal(event)
+
+			writer := &kafka.Writer{
+				Addr:     kafka.TCP(broker),
+				Topic:    topics[eventType],
+				Balancer: &kafka.LeastBytes{},
+			}
+			defer writer.Close()
+
+			if err := writer.WriteMessages(context.Background(),
+				kafka.Message{Value: body},
+			); err != nil {
+				http.Error(w, "failed to send kafka message", 500)
 				return
 			}
 
-			log.Printf("[producer] sent %s event: %s", eventType, eventJSON)
-			w.Header().Set("Content-Type", "application/json")
+			log.Printf("[producer] event=%s → topic=%s", eventType, topics[eventType])
 			w.WriteHeader(http.StatusCreated)
-			_ = json.NewEncoder(w).Encode(SuccessResponse{Status: "success"})
 		}
 	}
 
-	// Регистрируем обработчики
-	mux.HandleFunc("/api/events/movie", handleEvent("movie"))
-	mux.HandleFunc("/api/events/user", handleEvent("user"))
-	mux.HandleFunc("/api/events/payment", handleEvent("payment"))
+	mux.HandleFunc("/api/events/user", makeHandler("user"))
+	mux.HandleFunc("/api/events/payment", makeHandler("payment"))
+	mux.HandleFunc("/api/events/movie", makeHandler("movie"))
 
-	log.Printf("[events-service] started on port %s", port)
-	server := &http.Server{Addr: ":" + port, Handler: mux}
-
-	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server error: %v", err)
-		}
-	}()
-
-	// Ожидание сигнала остановки
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-	<-stop
-	log.Println("[events-service] shutting down...")
-	_ = server.Shutdown(context.Background())
+	log.Printf("[events-service] started on :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
 
-func consumeLoop(broker, topic string) {
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{broker},
-		Topic:    topic,
-		GroupID:  "events-consumer",
-		MinBytes: 10e3,
-		MaxBytes: 10e6,
-	})
-	defer reader.Close()
-
-	log.Printf("[consumer] listening on topic '%s'...", topic)
-
-	for {
-		msg, err := reader.ReadMessage(context.Background())
-		if err != nil {
-			log.Printf("[consumer] error: %v", err)
-			time.Sleep(time.Second)
-			continue
-		}
-
-		var e Event
-		if err := json.Unmarshal(msg.Value, &e); err == nil {
-			log.Printf("[consumer] received event: type=%s data=%s time=%s", e.Type, e.Data, e.Time)
-		} else {
-			log.Printf("[consumer] raw message: %s", msg.Value)
-		}
+func checkKafka(broker string) bool {
+	conn, err := net.DialTimeout("tcp", broker, 2*time.Second)
+	if err != nil {
+		log.Printf("[health] Kafka unreachable: %v", err)
+		return false
 	}
+	_ = conn.Close()
+	return true
 }
 
-func getEnv(key, fallback string) string {
+func getEnv(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
-	return fallback
+	return def
 }

@@ -19,8 +19,8 @@ type Event struct {
 }
 
 type HealthResponse struct {
-	Status  string `json:"status"`
-	KafkaOK bool   `json:"kafka_ok"`
+	Status  bool `json:"status"`
+	KafkaOK bool `json:"kafka_ok"`
 }
 
 func main() {
@@ -39,17 +39,17 @@ func main() {
 		kafkaOK := checkKafka(broker)
 
 		resp := HealthResponse{
-			Status:  "ok",
+			Status:  kafkaOK, // true если Kafka доступна
 			KafkaOK: kafkaOK,
 		}
 
-		status := http.StatusOK
+		statusCode := http.StatusOK
 		if !kafkaOK {
-			status = http.StatusServiceUnavailable
+			statusCode = http.StatusServiceUnavailable
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(status)
+		w.WriteHeader(statusCode)
 		_ = json.NewEncoder(w).Encode(resp)
 	})
 

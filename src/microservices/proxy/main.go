@@ -51,7 +51,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	target := routeRequest(r)
 
-	reqURL := target + r.URL.Path
+	reqURL := target + r.URL.RequestURI()
 	log.Printf("[proxy] → %s %s (target: %s)", r.Method, r.URL.Path, reqURL)
 
 	req, err := http.NewRequest(r.Method, reqURL, r.Body)

@@ -138,3 +138,5 @@ dockerconfigjson:
 ![Вывод cinemaabyss.example.com/api/movies](img_8.png)
 ![img_10.png](img_10.png)
 
+Исправил импорт конфига ресурсов. Теперь helm запускается без замечаний
+![Скрин запуска HELM](img_13.png)

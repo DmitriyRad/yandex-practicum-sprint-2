@@ -86,8 +86,8 @@ func routeRequest(r *http.Request) string {
 	path := strings.ToLower(r.URL.Path)
 
 	// Если включен фиче-флаг — направляем часть трафика на новый movies-service
-	if gradualMigration && (strings.HasPrefix(path, "/movies") || strings.HasPrefix(path, "/api/movies")) {
-		if rand.Intn(100) < moviesMigrationPercent {
+	if gradualMigration && (strings.HasPrefix(path, "/api/movies")) {
+		if (rand.Intn(100) < moviesMigrationPercent) || strings.HasPrefix(path, "/api/movies/health") {
 			return moviesServiceURL
 		}
 		return monolithURL

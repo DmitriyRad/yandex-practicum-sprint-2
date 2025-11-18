@@ -83,7 +83,10 @@ func main() {
 			}
 
 			log.Printf("[producer] event=%s → topic=%s", eventType, topics[eventType])
+
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 		}
 	}
 

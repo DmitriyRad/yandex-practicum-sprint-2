@@ -40,7 +40,7 @@ spec:
             - secretRef:
                 name: cinemaabyss-secrets
           resources:
-          {{- toYaml .Values.eventsService.resources | nindent 10 }}
+          {{  toYaml .Values.eventsService.resources | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /api/events/health

@@ -1,0 +1,75 @@
+@startuml Kinobezdna_C4_Containers
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_LEFT_RIGHT()
+
+' ===== Акторы =====
+Person(user, "Пользователь", "Web / Mobile / Smart TV")
+Person(admin, "Администратор", "Управление системой и мониторинг")
+
+' ===== Система =====
+System_Boundary(k8s, "Kubernetes Cluster (Production)") {
+
+  ' --- Клиентский слой ---
+  Container_Boundary(client_layer, "Frontend Layer") {
+    Container(webapp, "Web / Mobile App", "React / Swift / Kotlin", "Интерфейс для пользователей")
+  }
+
+  ' --- API и интеграции ---
+  Container_Boundary(api_layer, "Gateway & API Layer") {
+    Container(gateway, "API Gateway / Ingress", "Kong / NGINX", "Единая точка входа. REST / gRPC / WebSocket маршрутизация")
+  }
+
+  ' --- Сервисы ---
+  Container_Boundary(service_layer, "Business Microservices") {
+    Container(auth, "Auth Service", "Go", "Аутентификация и авторизация (JWT, OAuth2)")
+    Container(user_svc, "User Service", "Go", "Профили пользователей, настройки")
+    Container(metadata_svc, "Metadata Service", "Go", "Метаданные о фильмах, жанры, актёры, оценки, теги")
+    Container(video_catalog, "Video Catalog Service", "Go", "Каталог фильмов и источников контента")
+    Container(subscription_svc, "Subscription Service", "Go", "Подписки, скидки, тарифы")
+  }
+
+  ' --- Интеграции / Внешние системы ---
+  Container_Boundary(external_layer, "Integrations & Analytics") {
+    Container(recommendation, "Recommendation System", "External ML", "Рекомендации на основе событий (async)")
+    Container(kafka, "Event Bus (Kafka)", "Kafka Cluster", "Событийная шина: user, metadata, billing, playback")
+  }
+
+  ' --- Хранилища ---
+  Container_Boundary(storage_layer, "Data Storage") {
+    Container(db_users, "users-db", "PostgreSQL", "Пользователи")
+    Container(db_metadata, "metadata-db", "PostgreSQL", "Метаданные фильмов")
+    Container(db_billing, "billing-db", "PostgreSQL", "Подписки и платежи")
+  }
+
+  ' --- DevOps / Observability ---
+  Container_Boundary(devops_layer, "DevOps & Observability") {
+    Container(ci_cd, "CI/CD Pipeline", "GitLab CI / GitHub Actions", "Сборка, тестирование и деплой через Helm / ArgoCD")
+    Container(monitoring, "Monitoring & Logging", "Prometheus / Grafana / ELK", "Метрики, алерты, логи")
+  }
+}
+
+' ===== Взаимосвязи =====
+
+Rel(user, webapp, "Взаимодействие через UI")
+Rel(webapp, gateway, "REST / HTTPS запросы")
+Rel(gateway, auth, "Валидация токена, авторизация")
+Rel(auth, user_svc, "Проверка данных пользователя")
+Rel(gateway, metadata_svc, "Получение фильмов и жанров")
+Rel(gateway, video_catalog, "Каталог фильмов")
+Rel(gateway, subscription_svc, "Управление подписками")
+Rel(gateway, user_svc, "Настройка профилей")
+
+Rel(metadata_svc, kafka, "publish metadata.updated")
+Rel(user_svc, kafka, "publish user.events")
+Rel(video_catalog, kafka, "publish playback.events")
+Rel(kafka, recommendation, "consume/produce recommendations")
+
+Rel(user_svc, db_users, "read/write")
+Rel(subscription_svc, db_billing, "read/write")
+Rel(metadata_svc, db_metadata, "read/write")
+
+Rel(ci_cd, k8s, "Deploy via Helm / ArgoCD")
+Rel(monitoring, k8s, "Сбор метрик и логов")
+
+@enduml

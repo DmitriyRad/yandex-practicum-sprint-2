@@ -1,0 +1,93 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ cinema ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/docker-build-push.yml'
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+  TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Convert owner and repo to lowercase
+        run: |
+          echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "REPO_LC=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      # --- Включаем поддержку ARM/AMD64 ---
+      - name: Set up QEMU for multi-arch
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- proxy-service ---
+      - name: Build and push proxy image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/microservices/proxy
+          file: ./src/microservices/proxy/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/proxy-service:latest
+
+      # --- events-service ---
+      - name: Build and push events image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/microservices/events
+          file: ./src/microservices/events/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/events-service:latest
+
+      # --- movies-service ---
+      - name: Build and push movies image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/microservices/movies
+          file: ./src/microservices/movies/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/movies-service:latest
+
+      # --- monolith-service ---
+      - name: Build and push monolith image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/monolith
+          file: ./src/monolith/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}/monolith-service:latest
